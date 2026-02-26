@@ -6,48 +6,50 @@ const PageHeaderV2 = ({ children = [], list, backButton = true }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="page-header py-2" style={{ minHeight: "50px" }}>
-      <div className="d-flex justify-content-between align-items-center flex-wrap w-100">
+    <div className="py-2 bg-[#EDEEF0]" style={{ minHeight: "50px" }}>
+      <div className="flex justify-between items-center flex-wrap w-full">
 
         {/* LEFT SIDE: Back button + Breadcrumbs */}
-        <div className="d-flex align-items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {backButton && (
             <>
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="btn btn-outline-secondary d-flex align-items-center justify-content-center rounded-circle ms-0"
+                className="flex items-center justify-center rounded-full border border-[#3E1067]/25 bg-white hover:bg-[#3E1067]/5 hover:border-[#3E1067]/50 transition-colors"
                 style={{ width: "35px", height: "35px", padding: "0" }}
               >
-                <FiArrowLeft size={16} />
+                <FiArrowLeft size={16} className="text-[#3E1067]" />
               </button>
 
-              <div
-                style={{
-                  height: "30px",
-                  width: "1px",
-                  backgroundColor: "#ccc",
-                  marginLeft: "12px",
-                  marginRight: "12px",
-                }}
-              ></div>
+              <div className="w-px h-[30px] bg-[#3E1067]/15 mx-3"></div>
             </>
           )}
 
           {/* Breadcrumbs */}
-          <ul className="breadcrumb m-0 d-flex align-items-center gap-1">
+          <ul className="flex items-center gap-1 m-0 list-none p-0">
             {children.map((item, index) => (
               <li
                 key={index}
-                className={`breadcrumb-item text-capitalize ${index === children.length - 1 ? "active" : ""}`}
+                className={`flex items-center text-sm ${
+                  index === children.length - 1 
+                    ? "text-[#3E1067] font-semibold" 
+                    : "text-gray-400"
+                }`}
                 aria-current={index === children.length - 1 ? "page" : undefined}
               >
+                {index > 0 && <span className="mx-1.5 text-gray-300">/</span>}
                 {index === children.length - 1 ? (
-                  item.pageName
+                  <span>{item.pageName}</span>
                 ) : item.path ? (
-                  <Link to={item.path}>{item.folderName}</Link>
+                  <Link 
+                    to={item.path} 
+                    className="hover:text-[#3E1067] transition-colors"
+                  >
+                    {item.folderName}
+                  </Link>
                 ) : (
-                  item.folderName
+                  <span>{item.folderName}</span>
                 )}
               </li>
             ))}
@@ -55,7 +57,7 @@ const PageHeaderV2 = ({ children = [], list, backButton = true }) => {
         </div>
 
         {/* RIGHT SIDE: Action Buttons */}
-        <div className="d-flex align-items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {list}
         </div>
       </div>

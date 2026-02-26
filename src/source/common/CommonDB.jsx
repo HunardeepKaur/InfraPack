@@ -1,8 +1,8 @@
 import axios from "axios";
 import { GetSessionTokenData } from "../common/common";
 
-export const apiServerUrl = import.meta.env.VITE_DEV_UAT_URL;
-// export const apiServerUrl = import.meta.env.VITE_DEV_LOCAL_URL;
+// export const apiServerUrl = import.meta.env.VITE_DEV_UAT_URL;
+export const apiServerUrl = import.meta.env.VITE_DEV_LOCAL_URL;
 export const rfpApiUrl = import.meta.env.VITE_RFP_API_URL;
 
 export const PostDataToApiServerAsync_AXIOS = async (_ApiMethod, bodyData) => {
