@@ -130,6 +130,7 @@ export const getRuleDescriptionsByCompany = async (companyId = DEFAULT_COMPANY_I
     const rules = Array.isArray(response.data) ? response.data : [];
 
     const descriptions = rules
+      .filter((rule) => rule?.isactive === true || String(rule?.status || "").toLowerCase() === "active")
       .filter((rule) => typeof rule?.description === "string" && rule.description.trim())
       .sort(
         (a, b) =>
