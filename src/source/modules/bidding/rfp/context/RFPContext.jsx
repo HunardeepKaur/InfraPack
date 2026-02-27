@@ -17,6 +17,11 @@ export const RFPProvider = ({ children }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [rfpLoading, setRfpLoading] = useState(false);
   const [currentChunk, setCurrentChunk] = useState(null);
+  
+  // NEW: Prediction state
+  const [predictionResult, setPredictionResult] = useState(null);
+  const [predictionLoading, setPredictionLoading] = useState(false);
+  const [predictionError, setPredictionError] = useState(null);
 
   const clearRFPData = () => {
     setRfpData(null);
@@ -28,11 +33,16 @@ export const RFPProvider = ({ children }) => {
     setPdfUrl(null);
     setRfpLoading(false);
     setCurrentChunk(null);
+    // NEW: Clear prediction data
+    setPredictionResult(null);
+    setPredictionLoading(false);
+    setPredictionError(null);
   };
 
   return (
     <RFPContext.Provider
       value={{
+        // Existing
         rfpData,
         setRfpData,
         processedChunks,
@@ -46,6 +56,14 @@ export const RFPProvider = ({ children }) => {
         currentChunk,
         setCurrentChunk,
         clearRFPData,
+        
+        // NEW: Prediction
+        predictionResult,
+        setPredictionResult,
+        predictionLoading,
+        setPredictionLoading,
+        predictionError,
+        setPredictionError,
       }}
     >
       {children}

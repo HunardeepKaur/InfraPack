@@ -1,17 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiFile, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaSpinner } from 'react-icons/fa';
-import toast from 'react-hot-toast';
 import * as pdfjsLib from 'pdfjs-dist';
 import { version as pdfjsVersion } from 'pdfjs-dist';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import { normalizeText, calculateOverlapRatio, getNormalizedContentLines } from '../../utils/rfpHelpers';
+import { appToast } from '../../../../../../components/shared/toast/appToast';
 
 // Set worker source
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.mjs`;
 
 const themeColor = '#3E1067';
 const highlightFill = 'rgba(62, 16, 103, 0.14)';
+const isExpectedPdfCancellationError = (error) => {
+  const name = error?.name || '';
+  const message = (error?.message || '').toLowerCase();
+  return (
+    name === 'RenderingCancelledException' ||
+    message.includes('worker was destroyed') ||
+    message.includes('rendering cancelled') ||
+    message.includes('loading task was destroyed')
+  );
+};
 
 export const PDFViewerModal = ({ 
   isOpen, 
@@ -75,8 +85,11 @@ export const PDFViewerModal = ({
         setPdfDoc(pdf);
         setNumPages(pdf.numPages);
       } catch (error) {
+        if (isExpectedPdfCancellationError(error)) {
+          return;
+        }
         console.error('Error loading PDF:', error);
-        toast.error('Failed to load PDF');
+        appToast.error('Failed to load PDF');
         setIsLoading(false);
       }
     };
@@ -122,7 +135,9 @@ export const PDFViewerModal = ({
 
       return { page, viewport };
     } catch (error) {
-      console.error(`Error rendering page ${pageNum}:`, error);
+      if (!isExpectedPdfCancellationError(error)) {
+        console.error(`Error rendering page ${pageNum}:`, error);
+      }
       return null;
     }
   };
@@ -408,12 +423,14 @@ export const PDFViewerModal = ({
             if (contentCursor >= contentLines.length) break;
           }
         }
-      } catch (error) {
-        if (isStale()) return;
+    } catch (error) {
+      if (isStale()) return;
+      if (!isExpectedPdfCancellationError(error)) {
         console.error('Error in render and highlight:', error);
-        setIsLoading(false);
-        setIsReady(true);
       }
+      setIsLoading(false);
+      setIsReady(true);
+    }
     };
 
     renderAndHighlight();

@@ -3,6 +3,7 @@ import { router } from "./route/router";
 import AuthProvider from "./source/modules/auth/views/AuthProvider";
 import { Toaster } from "react-hot-toast";
 import NavigationProvider from "./context/NavigationProvider";
+import { appToastOptions } from "./components/shared/toast/appToast";
 
 
 const App = () => {
@@ -10,7 +11,15 @@ const App = () => {
     <AuthProvider>
       <NavigationProvider>
         <RouterProvider router={router} />
-        <Toaster toastOptions={{ duration: 2000 }} />
+        <Toaster
+          position={appToastOptions.position}
+          toastOptions={appToastOptions}
+          containerStyle={{
+            top: 68,
+            right: 16,
+            zIndex: 11000,
+          }}
+        />
       </NavigationProvider>
     </AuthProvider>
   );

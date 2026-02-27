@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import PageHeaderV2 from "../../../../../components/shared/pageHeader/PageHeaderV2";
-import { FiPlus, FiEdit3, FiX, FiToggleLeft, FiToggleRight, FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
+import { FiPlus, FiEdit3, FiX, FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
 import { FaSpinner } from "react-icons/fa";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
@@ -12,6 +12,7 @@ import {
   PostRuleConfigure,
   RuleStatus_Options,
 } from "../controllers/RuleConfigureController";
+import { appToast } from "../../../../../components/shared/toast/appToast";
 
 const COMPANY_UUID = "company_003"; // Replace with auth context later
 
@@ -56,7 +57,7 @@ const RulesConfigure = () => {
       setRules(formatted);
     } catch (error) {
       console.error("Failed to load rules:", error);
-      alert("Failed to load rules. Please try again.");
+      appToast.error("Failed to load rules. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,10 +70,22 @@ const RulesConfigure = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "PriorityLevel" ? parseInt(value, 10) || 1 : value,
-    }));
+    setFormData((prev) => {
+      const nextValue = name === "PriorityLevel" ? parseInt(value, 10) || 1 : value;
+      const nextState = {
+        ...prev,
+        [name]: nextValue,
+      };
+
+      // Keep IsActive synced only for explicit Active/Inactive status changes.
+      if (name === "Status") {
+        const normalized = String(value || "").toLowerCase();
+        if (normalized === "active") nextState.IsActive = true;
+        if (normalized === "inactive") nextState.IsActive = false;
+      }
+
+      return nextState;
+    });
   };
 
   const openCreate = () => {
@@ -103,11 +116,11 @@ const RulesConfigure = () => {
 
   const handleSave = async () => {
     if (!formData.RuleName?.trim()) {
-      alert("Rule Name is required");
+      appToast.error("Rule Name is required");
       return;
     }
     if (!formData.Description?.trim()) {
-      alert("Description is required");
+      appToast.error("Description is required");
       return;
     }
 
@@ -116,16 +129,16 @@ const RulesConfigure = () => {
       const result = await PostRuleConfigure(formData);
 
       if (result && !result.error) {
-        alert(isEditMode ? "Rule updated successfully!" : "Rule created successfully!");
+        appToast.success(isEditMode ? "Rule updated successfully!" : "Rule created successfully!");
         await loadRules();
         setShowForm(false);
         setEditingRule(null);
       } else {
-        alert("Error: " + (result?.error || "Failed to save rule"));
+        appToast.error("Error: " + (result?.error || "Failed to save rule"));
       }
     } catch (error) {
       console.error("Save error:", error);
-      alert("An unexpected error occurred. Please try again.");
+      appToast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -244,20 +257,6 @@ const RulesConfigure = () => {
           <div className={`${getStatusColor(params.value)} px-2.5 py-1 rounded-full text-[0.65rem] font-medium`}>
             {params.value || "Active"}
           </div>
-        </div>
-      ),
-    },
-    {
-      headerName: "Active",
-      field: "isActive",
-      width: 90,
-      minWidth: 90,
-      cellRenderer: (params) => (
-        <div className="flex items-center h-full">
-          <span className={`text-[0.7rem] font-medium flex items-center gap-1 ${params.value ? 'text-emerald-600' : 'text-rose-500'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${params.value ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-            {params.value ? 'Yes' : 'No'}
-          </span>
         </div>
       ),
     },
@@ -540,33 +539,9 @@ const RulesConfigure = () => {
                 </div>
               </div>
 
-              {/* IsActive + Status: ONLY SHOW IN EDIT MODE */}
+              {/* Status: ONLY SHOW IN EDIT MODE */}
               {isEditMode && (
                 <>
-                  {/* IsActive Toggle */}
-                  <div className="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-700 block">Active Status</label>
-                        <span className="text-[0.7rem] text-gray-400">
-                          {formData.IsActive ? 'Rule is currently enabled' : 'Rule is currently disabled'}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, IsActive: !prev.IsActive }))}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                          formData.IsActive 
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' 
-                            : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
-                        }`}
-                      >
-                        {formData.IsActive ? <FiToggleRight size={18} /> : <FiToggleLeft size={18} />}
-                        {formData.IsActive ? 'Active' : 'Inactive'}
-                      </button>
-                    </div>
-                  </div>
-
                   {/* Status Dropdown */}
                   <div className="mb-6">
                     <label className="block text-[0.7rem] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
